@@ -1,6 +1,9 @@
 package todo
 
 import (
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"time"
@@ -8,10 +11,27 @@ import (
 
 func todoIndexHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
-		w.Write([]byte("This is todo index handler"))
+		todos := []TodoResp{}
+		files, _ := ioutil.ReadDir("files/")
+		for _, f := range files {
+			td := TodoResp{}
+			td.Id = f.Name()
+			bts, _ := ioutil.ReadFile(fmt.Sprint("files/", f.Name()))
+			json.Unmarshal(bts, &td)
+			todos = append(todos, td)
+		}
+		jsoned, _ := json.Marshal(todos)
+		writeResp(w, jsoned)
 	} else if r.Method == http.MethodPost {
 		todoSaveHandler(w, r)
 	} else {
+		w.WriteHeader(405)
+		w.Write([]byte("Method Not Allowed"))
+	}
+}
+
+func todoShowHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
 		w.WriteHeader(405)
 		w.Write([]byte("Method Not Allowed"))
 	}
@@ -33,6 +53,11 @@ func todoSaveHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(400)
 	} else {
 		w.WriteHeader(200)
-		w.Write(jsoned)
+		writeResp(w, jsoned)
 	}
+}
+
+func writeResp(w http.ResponseWriter, bts []byte) {
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(bts)
 }
