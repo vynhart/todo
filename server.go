@@ -11,7 +11,8 @@ type Server struct{}
 func (s *Server) Start(port string) {
 	// using default http handler: DefaultServeMux
 	http.HandleFunc("/", indexHandler)
-	http.HandleFunc("/todo/", todoIndexHandler)
+	http.HandleFunc("/todo", todoIndexHandler)
+	http.HandleFunc("/todo/", todoShowHandler)
 
 	fmt.Println("listening on: ", port)
 	log.Fatal(http.ListenAndServe(port, nil))

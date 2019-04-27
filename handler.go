@@ -34,6 +34,20 @@ func todoShowHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		w.WriteHeader(405)
 		w.Write([]byte("Method Not Allowed"))
+		return
+	}
+
+	fName := r.URL.Path[len("/todo/"):]
+	bts, err := ioutil.ReadFile(fmt.Sprint("files/", fName))
+	if err != nil {
+		w.WriteHeader(400)
+		w.Write([]byte(err.Error()))
+	} else {
+		td := TodoResp{}
+		json.Unmarshal(bts, &td)
+		td.Id = fName
+		jsoned, _ := json.Marshal(td)
+		writeResp(w, jsoned)
 	}
 }
 
